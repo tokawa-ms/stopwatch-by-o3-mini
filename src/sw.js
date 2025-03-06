@@ -1,7 +1,7 @@
 const CACHE_NAME = 'stopwatch-cache-v1';
 const urlsToCache = [
-  '/src/index.html',
-  '/src/manifest.json'
+  '/index.html',
+  '/manifest.json'
   // ...必要に応じて他のアセットも追加...
 ];
 

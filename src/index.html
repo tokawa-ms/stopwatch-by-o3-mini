@@ -145,15 +145,11 @@
     </div>  
     <!-- Vue 3 の CDN -->  
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <!-- 追加: vueuse/core の CDN -->
-    <script src="https://unpkg.com/@vueuse/core"></script>
     <script>  
       const { createApp, ref, computed } = Vue;  
         
       createApp({  
         setup() {  
-          // 削除: VueUse.useWakeLock の呼び出し
-          // const { request: enableWakeLock, release: disableWakeLock } = VueUse.useWakeLock();
           let wakeLock = null;
           
           // ドラムロール用の初期値（1分00秒＝60秒）  
