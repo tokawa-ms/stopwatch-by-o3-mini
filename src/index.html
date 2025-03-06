@@ -1,0 +1,220 @@
+<!DOCTYPE html>  
+<html lang="ja">  
+  <head>  
+    <meta charset="UTF-8" />  
+    <title>カウントダウンタイマー</title>  
+    <style>  
+      /* 背景は濃い目のグレー系 */  
+      body {  
+        font-family: sans-serif;  
+        text-align: center;  
+        padding: 40px;  
+        background: #303030;  
+      }  
+      /* コンテンツ領域はやや明るいグレーで、文字色はホワイトに近い配色 */  
+      #app {  
+        max-width: 600px;  
+        margin: 0 auto;  
+        background: #424242;  
+        padding: 20px;  
+        border-radius: 8px;  
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);  
+        color: #fafafa;  
+      }  
+      .time-display {  
+        font-size: 4em;  
+        margin: 20px 0;  
+        font-weight: bold;  
+      }  
+      .bar-container {  
+        width: 100%;  
+        height: 30px;  
+        background: #555;  
+        border-radius: 15px;  
+        overflow: hidden;  
+        margin-top: 20px;  
+      }  
+      .bar-fill {  
+        height: 100%;  
+        transition: width 0.3s linear;  
+      }  
+      button {  
+        font-size: 1.2em;  
+        margin: 5px;  
+        padding: 10px 20px;  
+        border: none;  
+        border-radius: 5px;  
+        cursor: pointer;  
+        background-color: #616161;  
+        color: #fafafa;  
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);  
+      }  
+      button:disabled {  
+        opacity: 0.6;  
+        cursor: not-allowed;  
+      }  
+      input[type="number"] {  
+        font-size: 1.2em;  
+        padding: 5px;  
+        width: 60px;  
+        text-align: right;  
+        border: 1px solid #888;  
+        border-radius: 4px;  
+        background-color: #616161;  
+        color: #fafafa;  
+      }  
+      input[type="number"]:disabled {  
+        background-color: #757575;  
+      }  
+    </style>  
+  </head>  
+  <body>  
+    <div id="app">  
+      <h1>カウントダウンタイマー</h1>  
+      <!-- 設定：●分 ●秒 -->  
+      <div>  
+        <label>設定時間：　</label>  
+        <input  
+          type="number"  
+          v-model.number="minutesInput"  
+          :disabled="isRunning"  
+          min="0"  
+        /> 分  
+        <input  
+          type="number"  
+          v-model.number="secondsInput"  
+          :disabled="isRunning"  
+          min="0"  
+          max="59"  
+        /> 秒  
+        <button @click="setTime" :disabled="isRunning">設定</button>  
+      </div>  
+      <!-- 残り時間の表示（● : ● 表記、秒はゼロフィル、色は条件により変化） -->  
+      <div class="time-display" :style="{ color: displayColor }">  
+        {{ formattedTime }}  
+      </div>  
+      <!-- バーグラフ -->  
+      <div class="bar-container">  
+        <div  
+          class="bar-fill"  
+          :style="{ width: barWidth, backgroundColor: displayColor }"  
+        ></div>  
+      </div>  
+      <!-- 操作ボタン：スタート／ストップ／リセット -->  
+      <div style="margin-top:20px;">  
+        <button @click="start" :disabled="isRunning || totalTime <= 0">  
+          スタート  
+        </button>  
+        <button @click="stop" :disabled="!isRunning">ストップ</button>  
+        <button @click="reset">リセット</button>  
+      </div>  
+    </div>  
+    <!-- Vue 3 の CDN -->  
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>  
+    <script>  
+      const { createApp, ref, computed } = Vue;  
+        
+      createApp({  
+        setup() {  
+          // 分・秒で設定可能。初期値は 1 分 00 秒＝60秒  
+          const minutesInput = ref(1);  
+          const secondsInput = ref(0);  
+          // 合計秒数（内部用）  
+          const totalTime = ref(60);  
+          // 残り時間（単位：秒）  
+          const remainingTime = ref(totalTime.value);  
+          const isRunning = ref(false);  
+          let timerId = null;  
+            
+          // 入力された分と秒から総秒数を計算  
+          const setTime = () => {  
+            totalTime.value = minutesInput.value * 60 + secondsInput.value;  
+            remainingTime.value = totalTime.value;  
+          };  
+            
+          // 1秒ごとのカウントダウン  
+          const start = () => {  
+            if (isRunning.value) return;  
+            isRunning.value = true;  
+            timerId = setInterval(() => {  
+              remainingTime.value--;  
+            }, 1000);  
+          };  
+            
+          const stop = () => {  
+            isRunning.value = false;  
+            clearInterval(timerId);  
+            timerId = null;  
+          };  
+            
+          const reset = () => {  
+            stop();  
+            remainingTime.value = totalTime.value;  
+          };  
+            
+          // 残り時間を「分 : 秒」形式で表示（秒はゼロフィル、負の値の場合はマイナス記号を付与）  
+          const formattedTime = computed(() => {  
+            let t = remainingTime.value;  
+            const isNegative = t < 0;  
+            t = Math.abs(t);  
+            const minutes = Math.floor(t / 60);  
+            const seconds = Math.floor(t % 60)  
+              .toString()  
+              .padStart(2, '0');  
+            return (isNegative ? '-' : '') + minutes + ' : ' + seconds;  
+          });  
+            
+          /*   
+            表示色の設定（明度調整済み）  
+            ・残り時間 >= 50%　→　明るい青 (#64b5f6)  
+            ・残り時間 >= 25%　→　明るい緑 (#81c784)  
+            ・残り時間 >= 10%　→　明るい黄 (#fff176)  
+            ・残り時間 >= 0　　→　明るいオレンジ (#ffb74d)  
+            ・残り時間 < 0　　→　明るい赤 (#ef5350)  
+          */  
+          const displayColor = computed(() => {  
+            const t = remainingTime.value;  
+            if (t < 0) {  
+              return '#ef5350';  
+            }  
+            if (t >= totalTime.value * 0.5) {  
+              return '#64b5f6';  
+            }  
+            if (t >= totalTime.value * 0.25) {  
+              return '#81c784';  
+            }  
+            if (t >= totalTime.value * 0.1) {  
+              return '#fff176';  
+            }  
+            return '#ffb74d';  
+          });  
+            
+          // バーグラフの横幅（残り時間に応じて。ただし、残り時間が負の場合は 0%）  
+          const barWidth = computed(() => {  
+            if (remainingTime.value <= 0) {  
+              return '0%';  
+            }  
+            let percent = (remainingTime.value / totalTime.value) * 100;  
+            percent = Math.max(0, Math.min(100, percent));  
+            return percent + '%';  
+          });  
+            
+          return {  
+            minutesInput,  
+            secondsInput,  
+            totalTime,  
+            remainingTime,  
+            isRunning,  
+            setTime,  
+            start,  
+            stop,  
+            reset,  
+            formattedTime,  
+            displayColor,  
+            barWidth,  
+          };  
+        }  
+      }).mount('#app');  
+    </script>  
+  </body>  
+</html>  
