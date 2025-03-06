@@ -11,14 +11,14 @@
         width: 100%;  
         height: 100%;  
       }  
-      /* 背景は濃い目のグレー系 */  
+      /* 背景は濃い目のグレー系、ウィンドウ全体で中央寄せ */  
       body {  
         background: #303030;  
         display: flex;  
         align-items: center;  
         justify-content: center;  
       }  
-      /* アプリ全体をウィンドウサイズいっぱいに表示 */  
+      /* アプリ全体をウィンドウサイズいっぱいに使用 */  
       #app {  
         width: 100vw;  
         height: 100vh;  
@@ -31,11 +31,9 @@
         padding: 20px;  
         color: #fafafa;  
       }  
-      h1 {  
-        margin-bottom: 20px;  
-      }  
+      /* 大きめの残り時間表示：分 : 秒（秒はゼロフィル） */  
       .time-display {  
-        font-size: 8vw;  
+        font-size: 20vw;  
         margin: 20px 0;  
         font-weight: bold;  
       }  
@@ -89,7 +87,6 @@
   </head>  
   <body>  
     <div id="app">  
-      <h1>カウントダウンタイマー</h1>  
       <!-- 設定：●分 ●秒 -->  
       <div class="settings">  
         <label>設定時間：</label>  
@@ -108,7 +105,7 @@
         /> 秒  
         <button @click="setTime" :disabled="isRunning">設定</button>  
       </div>  
-      <!-- 残り時間の表示（● : ● 表記、秒はゼロフィル） -->  
+      <!-- 残り時間表示（分 : 秒、秒はゼロフィル） -->  
       <div class="time-display" :style="{ color: displayColor }">  
         {{ formattedTime }}  
       </div>  
@@ -173,7 +170,7 @@
             remainingTime.value = totalTime.value;  
           };  
             
-          // 残り時間を「分 : 秒」形式で表示（秒はゼロフィル、負の値の場合はマイナス記号を付与）  
+          // 残り時間を「分 : 秒」形式で表示（秒はゼロフィル、負の場合はマイナス記号付与）  
           const formattedTime = computed(() => {  
             let t = remainingTime.value;  
             const isNegative = t < 0;  
