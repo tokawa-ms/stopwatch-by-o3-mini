@@ -141,12 +141,17 @@
       </div>  
     </div>  
     <!-- Vue 3 の CDN -->  
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>  
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- 追加: vueuse/core の CDN -->
+    <script src="https://unpkg.com/@vueuse/core"></script>
     <script>  
       const { createApp, ref, computed } = Vue;  
         
       createApp({  
         setup() {  
+          // 変更: nosleep の初期化コードを vueuse の useWakeLock に置き換え
+          const { request: enableWakeLock, release: disableWakeLock } = VueUse.useWakeLock();
+          
           // ドラムロール用の初期値（1分00秒＝60秒）  
           const minutesInput = ref(1);  
           const secondsInput = ref(0);  
@@ -178,6 +183,8 @@
           const start = () => {  
             if (isRunning.value) return;  
             isRunning.value = true;  
+            // 変更: スリープ防止を vueuse の useWakeLock で有効にする
+            enableWakeLock();  
             timerId = setInterval(() => {  
               remainingTime.value--;  
             }, 1000);  
@@ -188,12 +195,16 @@
             isRunning.value = false;  
             clearInterval(timerId);  
             timerId = null;  
+            // 変更: スリープ防止を vueuse の useWakeLock で解除する
+            disableWakeLock();  
           };  
             
           // カウントダウンをリセット  
           const reset = () => {  
             stop();  
             remainingTime.value = totalTime.value;  
+            // 変更: 念のためスリープ防止を vueuse の useWakeLock で解除する  
+            disableWakeLock();  
           };  
             
           // 残り時間を「分 : 秒」形式で整形（秒はゼロフィル）  
@@ -250,4 +261,4 @@
       }).mount('#app');  
     </script>  
   </body>  
-</html>  
+</html>
