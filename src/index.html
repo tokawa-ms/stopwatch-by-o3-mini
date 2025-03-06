@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />  
     <title>カウントダウンタイマー</title>  
     <style>  
-      /* html, body のリセット */  
+      /* リセット */  
       html, body {  
         margin: 0;  
         padding: 0;  
         width: 100%;  
         height: 100%;  
       }  
-      /* 背景は濃い目のグレー系、ウィンドウ全体で中央寄せ */  
+      /* 背景と中央揃え */  
       body {  
         background: #303030;  
         display: flex;  
         align-items: center;  
         justify-content: center;  
       }  
-      /* アプリ全体をウィンドウサイズいっぱいに使用 */  
+      /* アプリ全体の設定 */  
       #app {  
         width: 100vw;  
         height: 100vh;  
@@ -31,100 +31,113 @@
         padding: 20px;  
         color: #fafafa;  
       }  
-      /* 大きめの残り時間表示：分 : 秒（秒はゼロフィル） */  
+      /* 大きな残り時間表示 */  
       .time-display {  
         font-size: 20vw;  
         margin: 20px 0;  
         font-weight: bold;  
       }  
+      /* プログレスバー */  
       .bar-container {  
         width: 90%;  
         height: 5vh;  
         background: #555;  
         border-radius: 15px;  
         overflow: hidden;  
-        margin-top: 20px;  
+        margin-bottom: 20px;  
       }  
       .bar-fill {  
         height: 100%;  
         transition: width 0.3s linear;  
       }  
+      /* コントロールパネル：下部の横並び */  
+      .control-panel {  
+        display: flex;  
+        align-items: center;  
+        justify-content: center;  
+        gap: 20px;  
+        width: 90%;  
+      }  
+      /* ドラムロールパネル */  
+      .drum-roll-panel {  
+        display: flex;  
+        align-items: center;  
+        gap: 10px;  
+      }  
+      .drum-roll-group {  
+        display: flex;  
+        align-items: center;  
+        gap: 5px;  
+      }  
+      .drum-roll {  
+        font-size: 1.5em;  
+        padding: 5px;  
+        background-color: #616161;  
+        color: #fafafa;  
+        border: none;  
+        border-radius: 5px;  
+      }  
+      /* アクションボタン群 */  
+      .action-buttons {  
+        display: flex;  
+        align-items: center;  
+        gap: 10px;  
+      }  
+      /* ボタンの共通スタイル */  
       button {  
         font-size: 1.5em;  
-        margin: 5px;  
         padding: 10px 20px;  
         border: none;  
         border-radius: 5px;  
-        cursor: pointer;  
         background-color: #616161;  
         color: #fafafa;  
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);  
+        cursor: pointer;  
       }  
       button:disabled {  
         opacity: 0.6;  
         cursor: not-allowed;  
       }  
-      input[type="number"] {  
-        font-size: 1.5em;  
-        padding: 5px;  
-        width: 80px;  
-        text-align: right;  
-        border: 1px solid #888;  
-        border-radius: 4px;  
-        background-color: #616161;  
-        color: #fafafa;  
-      }  
-      input[type="number"]:disabled {  
-        background-color: #757575;  
-      }  
-      /* 設定用のフォーム領域 */  
-      .settings {  
-        display: flex;  
-        align-items: center;  
-        gap: 10px;  
-      }  
     </style>  
   </head>  
   <body>  
     <div id="app">  
-      <!-- 設定：●分 ●秒 -->  
-      <div class="settings">  
-        <label>設定時間：</label>  
-        <input  
-          type="number"  
-          v-model.number="minutesInput"  
-          :disabled="isRunning"  
-          min="0"  
-        /> 分  
-        <input  
-          type="number"  
-          v-model.number="secondsInput"  
-          :disabled="isRunning"  
-          min="0"  
-          max="59"  
-        /> 秒  
-        <button @click="setTime" :disabled="isRunning">設定</button>  
-      </div>  
-      <!-- 残り時間表示（分 : 秒、秒はゼロフィル） -->  
+      <!-- 残り時間表示 -->  
       <div class="time-display" :style="{ color: displayColor }">  
         {{ formattedTime }}  
       </div>  
-      <!-- バーグラフ -->  
+      <!-- プログレスバー -->  
       <div class="bar-container">  
-        <div  
-          class="bar-fill"  
-          :style="{ width: barWidth, backgroundColor: displayColor }"  
-        ></div>  
+        <div class="bar-fill" :style="{ width: barWidth, backgroundColor: displayColor }"></div>  
       </div>  
-      <!-- 操作ボタン：スタート／ストップ／リセット -->  
-      <div style="margin-top:20px;">  
-        <button @click="start" :disabled="isRunning || totalTime <= 0">  
-          スタート  
-        </button>  
-        <button @click="stop" :disabled="!isRunning">  
-          ストップ  
-        </button>  
-        <button @click="reset">リセット</button>  
+      <!-- コントロールパネル：ドラムロール UI + 設定ボタン と スタート／ストップ／リセットボタンを横並びに -->  
+      <div class="control-panel">  
+        <div class="drum-roll-panel">  
+          <div class="drum-roll-group">    
+            <select class="drum-roll" v-model.number="minutesInput" :disabled="isRunning">  
+              <option v-for="m in minutesOptions" :key="m" :value="m">  
+                {{ m }}  
+              </option>  
+            </select>  
+            <label>分：</label> 
+            <select class="drum-roll" v-model.number="secondsInput" :disabled="isRunning">  
+              <option v-for="s in secondsOptions" :key="s" :value="s">  
+                {{ s }}  
+              </option>  
+            </select>
+            <label>秒：</label> 
+          </div>  
+          <button @click="setTime" :disabled="isRunning">設定</button>  
+        </div>
+        <!-- 縦棒でディバイダーを作る -->
+        <div style="width: 1px; height: 50px; background-color: #616161;"></div>
+        
+        <!-- スタート／ストップ／リセットボタン -->
+        <div class="action-buttons">  
+          <button @click="start" :disabled="isRunning || totalTime <= 0">スタート</button>  
+          <button @click="stop" :disabled="!isRunning">ストップ</button>  
+          <button @click="reset">リセット</button>  
+        </div>  
       </div>  
     </div>  
     <!-- Vue 3 の CDN -->  
@@ -134,23 +147,34 @@
         
       createApp({  
         setup() {  
-          // 分・秒で設定可能。初期値は 1 分 00 秒＝60秒  
+          // ドラムロール用の初期値（1分00秒＝60秒）  
           const minutesInput = ref(1);  
           const secondsInput = ref(0);  
-          // 合計秒数（内部用）  
+            
+          // 分の選択肢：0～120分  
+          const minutesOptions = [];  
+          for (let m = 0; m <= 120; m++) {  
+            minutesOptions.push(m);  
+          }  
+          // 秒の選択肢：0～59秒  
+          const secondsOptions = [];  
+          for (let s = 0; s < 60; s++) {  
+            secondsOptions.push(s);  
+          }  
+            
+          // 総秒数および残り時間（秒単位）  
           const totalTime = ref(60);  
-          // 残り時間（単位：秒）  
           const remainingTime = ref(totalTime.value);  
           const isRunning = ref(false);  
           let timerId = null;  
             
-          // 入力された分と秒から総秒数を計算  
+          // 設定ボタンの処理  
           const setTime = () => {  
             totalTime.value = minutesInput.value * 60 + secondsInput.value;  
             remainingTime.value = totalTime.value;  
           };  
             
-          // 1秒ごとのカウントダウン  
+          // 1秒ごとのカウントダウンを開始  
           const start = () => {  
             if (isRunning.value) return;  
             isRunning.value = true;  
@@ -159,59 +183,48 @@
             }, 1000);  
           };  
             
+          // カウントダウンを停止  
           const stop = () => {  
             isRunning.value = false;  
             clearInterval(timerId);  
             timerId = null;  
           };  
             
+          // カウントダウンをリセット  
           const reset = () => {  
             stop();  
             remainingTime.value = totalTime.value;  
           };  
             
-          // 残り時間を「分 : 秒」形式で表示（秒はゼロフィル、負の場合はマイナス記号付与）  
+          // 残り時間を「分 : 秒」形式で整形（秒はゼロフィル）  
           const formattedTime = computed(() => {  
             let t = remainingTime.value;  
             const isNegative = t < 0;  
             t = Math.abs(t);  
             const minutes = Math.floor(t / 60);  
-            const seconds = Math.floor(t % 60)  
-              .toString()  
-              .padStart(2, '0');  
+            const seconds = Math.floor(t % 60).toString().padStart(2, '0');  
             return (isNegative ? '-' : '') + minutes + ' : ' + seconds;  
           });  
             
-          /*   
-            表示色の設定（明度調整済み）  
-            ・残り時間 >= 50%　→　明るい青 (#64b5f6)  
-            ・残り時間 >= 25%　→　明るい緑 (#81c784)  
-            ・残り時間 >= 10%　→　明るい黄 (#fff176)  
-            ・残り時間 >= 0　　→　明るいオレンジ (#ffb74d)  
-            ・残り時間 < 0　　→　明るい赤 (#ef5350)  
+          /* 表示色の設定:  
+             ・残り時間 >= 50%　→　明るい青 (#64b5f6)  
+             ・残り時間 >= 25%　→　明るい緑 (#81c784)  
+             ・残り時間 >= 10%　→　明るい黄 (#fff176)  
+             ・残り時間 >= 0　　→　明るいオレンジ (#ffb74d)  
+             ・残り時間 < 0　　→　明るい赤 (#ef5350)  
           */  
           const displayColor = computed(() => {  
             const t = remainingTime.value;  
-            if (t < 0) {  
-              return '#ef5350';  
-            }  
-            if (t >= totalTime.value * 0.5) {  
-              return '#64b5f6';  
-            }  
-            if (t >= totalTime.value * 0.25) {  
-              return '#81c784';  
-            }  
-            if (t >= totalTime.value * 0.1) {  
-              return '#fff176';  
-            }  
+            if (t < 0) return '#ef5350';  
+            if (t >= totalTime.value * 0.5) return '#64b5f6';  
+            if (t >= totalTime.value * 0.25) return '#81c784';  
+            if (t >= totalTime.value * 0.1) return '#fff176';  
             return '#ffb74d';  
           });  
             
-          // バーグラフの横幅（残り時間に応じて。ただし、残り時間が負の場合は 0%）  
+          // プログレスバーの幅（残り時間に応じて）  
           const barWidth = computed(() => {  
-            if (remainingTime.value <= 0) {  
-              return '0%';  
-            }  
+            if (remainingTime.value <= 0) return '0%';  
             let percent = (remainingTime.value / totalTime.value) * 100;  
             percent = Math.max(0, Math.min(100, percent));  
             return percent + '%';  
@@ -220,6 +233,8 @@
           return {  
             minutesInput,  
             secondsInput,  
+            minutesOptions,  
+            secondsOptions,  
             totalTime,  
             remainingTime,  
             isRunning,  
