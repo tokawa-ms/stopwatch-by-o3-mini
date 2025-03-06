@@ -4,31 +4,44 @@
     <meta charset="UTF-8" />  
     <title>カウントダウンタイマー</title>  
     <style>  
+      /* html, body のリセット */  
+      html, body {  
+        margin: 0;  
+        padding: 0;  
+        width: 100%;  
+        height: 100%;  
+      }  
       /* 背景は濃い目のグレー系 */  
       body {  
-        font-family: sans-serif;  
-        text-align: center;  
-        padding: 40px;  
         background: #303030;  
+        display: flex;  
+        align-items: center;  
+        justify-content: center;  
       }  
-      /* コンテンツ領域はやや明るいグレーで、文字色はホワイトに近い配色 */  
+      /* アプリ全体をウィンドウサイズいっぱいに表示 */  
       #app {  
-        max-width: 600px;  
-        margin: 0 auto;  
+        width: 100vw;  
+        height: 100vh;  
         background: #424242;  
+        display: flex;  
+        flex-direction: column;  
+        align-items: center;  
+        justify-content: center;  
+        box-sizing: border-box;  
         padding: 20px;  
-        border-radius: 8px;  
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);  
         color: #fafafa;  
       }  
+      h1 {  
+        margin-bottom: 20px;  
+      }  
       .time-display {  
-        font-size: 4em;  
+        font-size: 8vw;  
         margin: 20px 0;  
         font-weight: bold;  
       }  
       .bar-container {  
-        width: 100%;  
-        height: 30px;  
+        width: 90%;  
+        height: 5vh;  
         background: #555;  
         border-radius: 15px;  
         overflow: hidden;  
@@ -39,7 +52,7 @@
         transition: width 0.3s linear;  
       }  
       button {  
-        font-size: 1.2em;  
+        font-size: 1.5em;  
         margin: 5px;  
         padding: 10px 20px;  
         border: none;  
@@ -54,9 +67,9 @@
         cursor: not-allowed;  
       }  
       input[type="number"] {  
-        font-size: 1.2em;  
+        font-size: 1.5em;  
         padding: 5px;  
-        width: 60px;  
+        width: 80px;  
         text-align: right;  
         border: 1px solid #888;  
         border-radius: 4px;  
@@ -66,14 +79,20 @@
       input[type="number"]:disabled {  
         background-color: #757575;  
       }  
+      /* 設定用のフォーム領域 */  
+      .settings {  
+        display: flex;  
+        align-items: center;  
+        gap: 10px;  
+      }  
     </style>  
   </head>  
   <body>  
     <div id="app">  
       <h1>カウントダウンタイマー</h1>  
       <!-- 設定：●分 ●秒 -->  
-      <div>  
-        <label>設定時間：　</label>  
+      <div class="settings">  
+        <label>設定時間：</label>  
         <input  
           type="number"  
           v-model.number="minutesInput"  
@@ -89,7 +108,7 @@
         /> 秒  
         <button @click="setTime" :disabled="isRunning">設定</button>  
       </div>  
-      <!-- 残り時間の表示（● : ● 表記、秒はゼロフィル、色は条件により変化） -->  
+      <!-- 残り時間の表示（● : ● 表記、秒はゼロフィル） -->  
       <div class="time-display" :style="{ color: displayColor }">  
         {{ formattedTime }}  
       </div>  
@@ -105,7 +124,9 @@
         <button @click="start" :disabled="isRunning || totalTime <= 0">  
           スタート  
         </button>  
-        <button @click="stop" :disabled="!isRunning">ストップ</button>  
+        <button @click="stop" :disabled="!isRunning">  
+          ストップ  
+        </button>  
         <button @click="reset">リセット</button>  
       </div>  
     </div>  
