@@ -152,8 +152,9 @@
         
       createApp({  
         setup() {  
-          // 変更: nosleep の初期化コードを vueuse の useWakeLock に置き換え
-          const { request: enableWakeLock, release: disableWakeLock } = VueUse.useWakeLock();
+          // 削除: VueUse.useWakeLock の呼び出し
+          // const { request: enableWakeLock, release: disableWakeLock } = VueUse.useWakeLock();
+          let wakeLock = null;
           
           // ドラムロール用の初期値（1分00秒＝60秒）  
           const minutesInput = ref(1);  
@@ -182,32 +183,39 @@
             remainingTime.value = totalTime.value;  
           };  
             
-          // 1秒ごとのカウントダウンを開始  
-          const start = () => {  
+          // start() を WakeLock API を利用するように変更
+          const start = async () => {  
             if (isRunning.value) return;  
             isRunning.value = true;  
-            // 変更: スリープ防止を vueuse の useWakeLock で有効にする
-            enableWakeLock();  
+            try {
+              wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+              console.error('WakeLock request failed:', err);
+            }
             timerId = setInterval(() => {  
               remainingTime.value--;  
             }, 1000);  
           };  
             
-          // カウントダウンを停止  
-          const stop = () => {  
+          // stop() を WakeLock の解除を行うように変更
+          const stop = async () => {  
             isRunning.value = false;  
             clearInterval(timerId);  
             timerId = null;  
-            // 変更: スリープ防止を vueuse の useWakeLock で解除する
-            disableWakeLock();  
+            if (wakeLock) {
+              try {
+                await wakeLock.release();
+              } catch (err) {
+                console.error('WakeLock release failed:', err);
+              }
+              wakeLock = null;
+            }
           };  
             
-          // カウントダウンをリセット  
-          const reset = () => {  
-            stop();  
+          // reset() でも WakeLock の解除処理を実施
+          const reset = async () => {  
+            await stop();  
             remainingTime.value = totalTime.value;  
-            // 変更: 念のためスリープ防止を vueuse の useWakeLock で解除する  
-            disableWakeLock();  
           };  
             
           // 残り時間を「分 : 秒」形式で整形（秒はゼロフィル）  
