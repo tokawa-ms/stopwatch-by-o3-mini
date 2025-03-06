@@ -99,6 +99,9 @@
         cursor: not-allowed;  
       }  
     </style>  
+    <!-- 追加: manifest とテーマカラー -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#424242" />
   </head>  
   <body>  
     <div id="app">  
@@ -259,6 +262,19 @@
           };  
         }  
       }).mount('#app');  
+
+      // 追加: サービスワーカーの登録コード
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('../sw.js')
+            .then(reg => {
+              console.log('ServiceWorker registration successful with scope:', reg.scope);
+            })
+            .catch(err => {
+              console.error('ServiceWorker registration failed:', err);
+            });
+        });
+      }
     </script>  
   </body>  
 </html>
